@@ -74,12 +74,12 @@ const FirebaseData = (() => {
      * Generate a shareable URL for a project, optionally scoped to a game and/or playlist.
      */
     function getShareUrl(projectId, gameId = null, playlistId = null) {
-        const url = new URL(window.location.href);
+        const baseUrl = window.location.href.split('?')[0].split('#')[0];
         const params = new URLSearchParams();
         params.set('project', projectId);
         if (gameId) params.set('game', gameId);
         if (playlistId) params.set('playlist', playlistId);
-        return url.origin + url.pathname + '?' + params.toString();
+        return baseUrl + '?' + params.toString();
     }
 
     /**

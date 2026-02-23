@@ -577,8 +577,12 @@
             return;
         }
 
-        _pendingShareUrlBase = FirebaseData.getShareUrl(projectId, null, playlistId);
-        UI.showModal('modal-share-options');
+        const url = FirebaseData.getShareUrl(projectId, null, playlistId) + '&mode=view';
+        navigator.clipboard.writeText(url).then(() => {
+            UI.toast('🔗 Link de Playlist copiado', 'success');
+        }).catch(() => {
+            prompt('Copiá este link:', url);
+        });
     };
 
     $('#analyze-playlists').addEventListener('click', handlePlaylistShare);
