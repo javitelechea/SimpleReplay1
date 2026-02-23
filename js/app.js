@@ -577,7 +577,7 @@
         // Check if loading a shared project from URL
         const projectIdFromUrl = FirebaseData.getProjectIdFromUrl();
         const playlistIdFromUrl = FirebaseData.getPlaylistIdFromUrl();
-        const gameIdFromUrl = FirebaseData.getGameIdFromUrl();
+        const projectIdFromUrl = FirebaseData.getProjectIdFromUrl();
 
         if (projectIdFromUrl) {
             UI.toast('Cargando proyecto...', '');
