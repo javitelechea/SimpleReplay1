@@ -387,9 +387,15 @@ const AppState = (() => {
     };
     const projectId = await FirebaseData.saveProject(state.currentProjectId, data);
     state.currentProjectId = projectId;
-    // Update URL
-    const url = FirebaseData.getShareUrl(projectId);
-    window.history.replaceState({}, '', url);
+
+    // Update URL only if we are the owner creating/editing the project
+    // If the viewer is auto-saving a comment, don't destroy their playlist/view URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mode') !== 'view') {
+      const url = FirebaseData.getShareUrl(projectId);
+      window.history.replaceState({}, '', url);
+    }
+
     emit('projectSaved', projectId);
     return projectId;
   }

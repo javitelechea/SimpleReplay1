@@ -338,10 +338,17 @@
                 loadBtn.textContent = 'Abrir';
                 loadBtn.addEventListener('click', async () => {
                     UI.hideModal('modal-projects');
+
+                    if (p.isShared) {
+                        // For shared projects, redirect completely to enforce read-only URL state
+                        window.location.href = FirebaseData.getShareUrl(p.id) + '&mode=view';
+                        return;
+                    }
+
                     UI.toast('Cargando proyecto...', '');
                     const loaded = await AppState.loadFromCloud(p.id);
                     if (loaded) {
-                        FirebaseData.addProjectLocally(p.id, p.isShared);
+                        FirebaseData.addProjectLocally(p.id, false);
                         UI.toast('Proyecto cargado ✅', 'success');
                         UI.refreshAll();
                         const game = AppState.getCurrentGame();
