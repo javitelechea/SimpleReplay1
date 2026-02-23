@@ -592,7 +592,6 @@
     // ═══════════════════════════════════════
 
     async function init() {
-<<<<<<< HEAD
         // Check if loading a shared project from URL
         const projectIdFromUrl = FirebaseData.getProjectIdFromUrl();
         const playlistIdFromUrl = FirebaseData.getPlaylistIdFromUrl();
@@ -606,30 +605,23 @@
         }
 
         // Init state (loads whatever is in DemoData)
-=======
-        // Init state (loads demo data as default)
->>>>>>> 31a1645a737590964bda656e38d40bc4d7b611b7
         AppState.init();
 
         // Init YouTube Player
         await YTPlayer.init();
-<<<<<<< HEAD
-=======
 
-// Check if loading a shared project from URL
-const projectIdFromUrl = FirebaseData.getProjectIdFromUrl();
-const playlistIdFromUrl = FirebaseData.getPlaylistIdFromUrl();
->>>>>>> 31a1645a737590964bda656e38d40bc4d7b611b7
+        if (projectIdFromUrl) {
+            UI.toast('Cargando proyecto...', '');
+            const loaded = await AppState.loadFromCloud(projectIdFromUrl);
 
-if (projectIdFromUrl) {
-    UI.toast('Cargando proyecto...', '');
-    const loaded = await AppState.loadFromCloud(projectIdFromUrl);
+            if (loaded) {
+                FirebaseData.addProjectLocally(projectIdFromUrl);
+                UI.toast('Proyecto cargado ✅', 'success');
 
-    if (loaded) {
-        FirebaseData.addProjectLocally(projectIdFromUrl);
-        UI.toast('Proyecto cargado ✅', 'success');
+                if (gameIdFromUrl) {
+                    AppState.setCurrentGame(gameIdFromUrl);
+                }
 
-<<<<<<< HEAD
                 const game = AppState.getCurrentGame();
                 if (game && game.youtube_video_id) {
                     YTPlayer.loadVideo(game.youtube_video_id);
@@ -647,29 +639,8 @@ if (projectIdFromUrl) {
             if (games.length > 0) {
                 AppState.setCurrentGame(games[0].id);
             }
-=======
-        // Si existe gameIdFromUrl, asegurate de haberlo declarado arriba
-        // (si no, comentá estas 3 líneas)
-        if (typeof gameIdFromUrl !== 'undefined' && gameIdFromUrl) {
-            AppState.setCurrentGame(gameIdFromUrl);
->>>>>>> 31a1645a737590964bda656e38d40bc4d7b611b7
         }
 
-        const game = AppState.getCurrentGame();
-        if (game && game.youtube_video_id) {
-            YTPlayer.loadVideo(game.youtube_video_id);
-        }
-    } else {
-        UI.toast('No se pudo cargar el proyecto', 'error');
-    }
-
-} else {
-    // Auto-select first game for demo
-    const games = AppState.get('games');
-    if (games.length > 0) {
-        AppState.setCurrentGame(games[0].id);
-    }
-}
         // Apply playlist-only mode if requested
         if (playlistIdFromUrl) {
             document.body.classList.add('playlist-only-mode');
