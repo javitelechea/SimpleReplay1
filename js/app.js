@@ -622,7 +622,10 @@
             if (loaded) {
                 // Determine if this project was already in our local 'owned' list
                 const localProjects = JSON.parse(localStorage.getItem('sr_my_projects') || '[]');
-                const isOwned = localProjects.some(p => (typeof p === 'string' ? p : p.id) === projectIdFromUrl && p.shared === false);
+                const isOwned = localProjects.some(p => {
+                    if (typeof p === 'string') return p === projectIdFromUrl;
+                    return p.id === projectIdFromUrl && p.shared === false;
+                });
 
                 FirebaseData.addProjectLocally(projectIdFromUrl, !isOwned); // Save as shared if we don't own it
                 UI.toast('Proyecto cargado ✅', 'success');

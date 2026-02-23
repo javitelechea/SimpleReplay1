@@ -9,7 +9,7 @@ const DemoData = (() => {
 
     // ── Tag Types (seeded) ──
     // row: 'top' = own team, 'bottom' = rival (EC = equipo contrario)
-    const tagTypes = [
+    let tagTypes = [
         { id: 'tag-salida', key: 'salida', label: 'Salida', row: 'top', pre_sec: 3, post_sec: 8, order: 1 },
         { id: 'tag-ataque', key: 'ataque', label: 'Ataque', row: 'top', pre_sec: 3, post_sec: 8, order: 2 },
         { id: 'tag-area', key: 'area', label: 'Área', row: 'top', pre_sec: 3, post_sec: 8, order: 3 },
