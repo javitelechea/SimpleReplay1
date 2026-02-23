@@ -118,17 +118,18 @@ const FirebaseData = (() => {
         }
     }
 
-    function addProjectLocally(projectId) {
+    function addProjectLocally(projectId, isShared = false) {
         const ids = getLocalProjects();
-        if (!ids.includes(projectId)) {
-            ids.push(projectId);
+        const exists = ids.find(p => typeof p === 'string' ? p === projectId : p.id === projectId);
+        if (!exists) {
+            ids.push({ id: projectId, shared: isShared });
             localStorage.setItem('sr_my_projects', JSON.stringify(ids));
         }
     }
 
     function removeProjectLocally(projectId) {
         let ids = getLocalProjects();
-        ids = ids.filter(id => id !== projectId);
+        ids = ids.filter(p => (typeof p === 'string' ? p : p.id) !== projectId);
         localStorage.setItem('sr_my_projects', JSON.stringify(ids));
     }
 
@@ -137,17 +138,21 @@ const FirebaseData = (() => {
      */
     async function listProjects() {
         try {
-            const projectIds = getLocalProjects();
-            if (projectIds.length === 0) return [];
+            const stored = getLocalProjects();
+            if (stored.length === 0) return [];
 
-            const promises = projectIds.map(id => loadProject(id));
+            // Map old string array format to object format for backwards compatibility
+            const projectIds = stored.map(p => typeof p === 'string' ? { id: p, shared: false } : p);
+
+            const promises = projectIds.map(p => loadProject(p.id).then(data => ({ data, shared: p.shared })));
             const results = await Promise.all(promises);
             // Filter out nulls (deleted projects) and map to summary objects
-            return results.filter(p => p !== null).map(p => ({
-                id: p.id,
-                title: p.title || 'Sin título',
-                updatedAt: p.updatedAt?.toDate?.() || null,
-                youtubeVideoId: p.youtubeVideoId || ''
+            return results.filter(res => res.data !== null).map(res => ({
+                id: res.data.id,
+                title: res.data.title || 'Sin título',
+                updatedAt: res.data.updatedAt?.toDate?.() || null,
+                youtubeVideoId: res.data.youtubeVideoId || '',
+                isShared: res.shared
             })).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
         } catch (err) {
             console.error('Error listing projects:', err);
@@ -155,15 +160,15 @@ const FirebaseData = (() => {
         }
     }
 
-return {
-    saveProject,
-    loadProject,
-    listProjects,
-    getShareUrl,
-    getProjectIdFromUrl,
-    getGameIdFromUrl,       // ← ESTA ES LA QUE FALTA
-    getPlaylistIdFromUrl,
-    addProjectLocally,
-    removeProjectLocally
-};
+    return {
+        saveProject,
+        loadProject,
+        listProjects,
+        getShareUrl,
+        getProjectIdFromUrl,
+        getGameIdFromUrl,       // ← ESTA ES LA QUE FALTA
+        getPlaylistIdFromUrl,
+        addProjectLocally,
+        removeProjectLocally
+    };
 })();

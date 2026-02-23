@@ -263,119 +263,108 @@
         if (e.key === 'Enter') $('#btn-create-playlist').click();
     });
 
-    // Tag editor toggle
-    $('#btn-toggle-tag-editor').addEventListener('click', () => {
-        UI.toggleTagEditor();
-    });
-
-    // Inline tag editor buttons
-    $('#btn-save-tag').addEventListener('click', () => UI.saveTagFromEditor());
-    $('#btn-delete-tag').addEventListener('click', () => UI.deleteTagFromEditor());
-    $('#btn-cancel-tag-edit').addEventListener('click', () => UI.closeTagInlineEditor());
-    $('#edit-tag-label').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') UI.saveTagFromEditor();
-        if (e.key === 'Escape') UI.closeTagInlineEditor();
-    });
-
-    // Add to playlist modal cancel
-    $('#btn-cancel-add-playlist').addEventListener('click', () => {
-        UI.hideModal('modal-add-to-playlist');
-    });
-
-    // Flag filter buttons (View mode) - toggle filter
-    $('#flag-filter-bar').addEventListener('click', (e) => {
-        const btn = e.target.closest('.flag-btn');
-        if (!btn) return;
-        const flag = btn.dataset.flag;
-        AppState.toggleFilterFlag(flag);
-    });
-
-    // Clear flag filter
-    $('#btn-clear-flag-filter').addEventListener('click', () => {
-        AppState.clearFilterFlags();
-    });
-
-    // Reset ALL filters
-    $('#btn-reset-all-filters').addEventListener('click', () => {
-        AppState.clearAllFilters();
-    });
-
     // ═══ PROJECTS LIST ═══
     $('#btn-my-projects').addEventListener('click', async () => {
         UI.showModal('modal-projects');
-        const container = $('#project-list');
-        container.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:16px;">Cargando...</p>';
+        const listOwned = $('#project-list');
+        const listShared = $('#shared-project-list');
+        listOwned.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:16px;">Cargando...</p>';
+        listShared.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:16px;">Cargando...</p>';
+
+        const renderList = (container, arr) => {
+            container.innerHTML = '';
+            if (arr.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-muted);font-size:0.8rem;text-align:center;padding:16px;">No hay proyectos</p>';
+                return;
+            }
+
+            arr.forEach(p => {
+                const el = document.createElement('div');
+                el.className = 'project-item';
+                el.style.display = 'flex';
+                el.style.alignItems = 'center';
+                el.style.justifyContent = 'space-between';
+                el.style.padding = '10px';
+                el.style.borderBottom = '1px solid var(--border)';
+                el.style.gap = '8px';
+
+                const dateStr = p.updatedAt ? p.updatedAt.toLocaleDateString() : '';
+                const info = document.createElement('div');
+                info.className = 'project-info';
+                info.style.flex = '1';
+                info.style.cursor = 'pointer';
+                info.innerHTML = `
+                    <div class="project-title" style="font-weight:500;font-size:0.9rem;">${p.title}</div>
+                    <div class="project-date" style="font-size:0.75rem;color:var(--text-muted);">${dateStr}</div>
+                `;
+
+                const actions = document.createElement('div');
+                actions.className = 'project-actions';
+
+                // Share btn
+                const shareBtn = document.createElement('button');
+                shareBtn.className = 'btn btn-xs btn-share project-share-btn';
+                shareBtn.innerHTML = '🔗';
+                shareBtn.title = 'Compartir link';
+                shareBtn.addEventListener('click', () => {
+                    _pendingShareUrlBase = FirebaseData.getShareUrl(p.id);
+                    UI.showModal('modal-share-options');
+                });
+
+                // Load btn
+                const loadBtn = document.createElement('button');
+                loadBtn.className = 'btn btn-xs btn-primary project-load-btn';
+                loadBtn.textContent = 'Abrir';
+                loadBtn.addEventListener('click', async () => {
+                    UI.hideModal('modal-projects');
+                    UI.toast('Cargando proyecto...', '');
+                    const loaded = await AppState.loadFromCloud(p.id);
+                    if (loaded) {
+                        FirebaseData.addProjectLocally(p.id, p.isShared);
+                        UI.toast('Proyecto cargado ✅', 'success');
+                        UI.refreshAll();
+                        const game = AppState.getCurrentGame();
+                        if (game && game.youtube_video_id) {
+                            YTPlayer.loadVideo(game.youtube_video_id);
+                        }
+                        const url = FirebaseData.getShareUrl(p.id);
+                        window.history.replaceState({}, '', url);
+                    } else {
+                        UI.toast('Error al cargar', 'error');
+                    }
+                });
+
+                // Delete btn
+                const delBtn = document.createElement('button');
+                delBtn.className = 'btn btn-xs btn-danger project-delete-btn';
+                delBtn.textContent = '🗑️';
+                delBtn.title = p.isShared ? 'Remover de la lista' : 'Eliminar localmente';
+                delBtn.addEventListener('click', () => {
+                    if (confirm(`¿Quitar "${p.title}" de tu lista local?`)) {
+                        FirebaseData.removeProjectLocally(p.id);
+                        el.remove();
+                    }
+                });
+
+                actions.appendChild(shareBtn);
+                actions.appendChild(loadBtn);
+                actions.appendChild(delBtn);
+
+                el.appendChild(info);
+                el.appendChild(actions);
+                container.appendChild(el);
+            });
+        };
+
         try {
             const projects = await FirebaseData.listProjects();
-            if (projects.length === 0) {
-                container.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:16px;">No hay proyectos guardados todavía. Usá 💾 Guardar para crear uno.</p>';
-            } else {
-                container.innerHTML = '';
-                projects.forEach(p => {
-                    const div = document.createElement('div');
-                    div.className = 'project-item';
-                    const date = p.updatedAt ? p.updatedAt.toLocaleDateString('es-AR') : '';
-                    div.innerHTML = `
-                        <div class="project-info">
-                            <span class="project-title">${p.title}</span>
-                            <span class="project-date">${date}</span>
-                        </div>
-                        <div class="project-actions">
-                            <button class="btn btn-xs btn-share project-share-btn" data-project-id="${p.id}" title="Copiar link">🔗</button>
-                            <button class="btn btn-xs btn-primary project-load-btn" data-project-id="${p.id}">Abrir</button>
-                            <button class="btn btn-xs btn-danger project-delete-btn" data-project-id="${p.id}" title="Eliminar de mi lista">🗑️</button>
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
-                // Attach share handlers
-                container.querySelectorAll('.project-share-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const url = FirebaseData.getShareUrl(btn.dataset.projectId);
-                        navigator.clipboard.writeText(url).then(() => {
-                            UI.toast('🔗 Link copiado', 'success');
-                        }).catch(() => { prompt('Copiá este link:', url); });
-                    });
-                });
-                // Attach load handlers
-                container.querySelectorAll('.project-load-btn').forEach(btn => {
-                    btn.addEventListener('click', async () => {
-                        const pid = btn.dataset.projectId;
-                        UI.hideModal('modal-projects');
-                        UI.toast('Cargando proyecto...', '');
-                        const loaded = await AppState.loadFromCloud(pid);
-                        if (loaded) {
-                            FirebaseData.addProjectLocally(pid);
-                            UI.toast('Proyecto cargado ✅', 'success');
-                            UI.refreshAll();
-                            const game = AppState.getCurrentGame();
-                            if (game && game.youtube_video_id) {
-                                YTPlayer.loadVideo(game.youtube_video_id);
-                            }
-                            const url = FirebaseData.getShareUrl(pid);
-                            window.history.replaceState({}, '', url);
-                        } else {
-                            UI.toast('Error al cargar el proyecto', 'error');
-                        }
-                    });
-                });
-                // Attach delete handlers
-                container.querySelectorAll('.project-delete-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const pid = btn.dataset.projectId;
-                        if (confirm('¿Seguro que querés eliminar este proyecto de tu lista local? (No se borrará de la nube si otro tiene el link)')) {
-                            FirebaseData.removeProjectLocally(pid);
-                            btn.closest('.project-item').remove();
-                            if (container.querySelectorAll('.project-item').length === 0) {
-                                container.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:16px;">Lista de proyectos vacía.</p>';
-                            }
-                        }
-                    });
-                });
-            }
+            const ownedProjects = projects.filter(p => !p.isShared);
+            const sharedProjects = projects.filter(p => p.isShared);
+            renderList(listOwned, ownedProjects);
+            renderList(listShared, sharedProjects);
         } catch (err) {
-            container.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:16px;">Error al conectar con Firebase. Verificá que Firestore esté activo.</p>';
-            console.error('List projects error:', err);
+            listOwned.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:16px;">Error al conectar.</p>';
+            listShared.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:16px;">Error al conectar.</p>';
         }
     });
 
@@ -627,7 +616,11 @@
             const loaded = await AppState.loadFromCloud(projectIdFromUrl);
 
             if (loaded) {
-                FirebaseData.addProjectLocally(projectIdFromUrl);
+                // Determine if this project was already in our local 'owned' list
+                const localProjects = JSON.parse(localStorage.getItem('sr_my_projects') || '[]');
+                const isOwned = localProjects.some(p => (typeof p === 'string' ? p : p.id) === projectIdFromUrl && p.shared === false);
+
+                FirebaseData.addProjectLocally(projectIdFromUrl, !isOwned); // Save as shared if we don't own it
                 UI.toast('Proyecto cargado ✅', 'success');
 
                 if (gameIdFromUrl) {
