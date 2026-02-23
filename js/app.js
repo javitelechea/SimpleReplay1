@@ -612,8 +612,12 @@
         // Init state (loads whatever is in DemoData)
         AppState.init();
 
-        // Init YouTube Player
-        await YTPlayer.init();
+        // Init YouTube Player safely (handles file:// origin errors cleanly)
+        try {
+            await YTPlayer.init();
+        } catch (e) {
+            console.warn('YouTube Player no se pudo iniciar inmediatamente (común en file://).', e);
+        }
 
         if (projectIdFromUrl) {
             UI.toast('Cargando proyecto...', '');

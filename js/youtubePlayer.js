@@ -41,6 +41,7 @@ const YTPlayer = (() => {
                 iv_load_policy: 3,
                 fs: 1,
                 playsinline: 1,
+                origin: window.location.origin === "null" ? "*" : window.location.origin
             },
             events: {
                 onReady: () => {
