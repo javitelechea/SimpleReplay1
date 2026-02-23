@@ -249,6 +249,15 @@ const UI = (() => {
                     // Send handler
                     const sendBtn = parentEl.querySelector('.chat-send-btn');
                     const nameInput = parentEl.querySelector('.chat-name-input');
+                    const panel = parentEl.querySelector('.clip-chat-panel');
+                    const closeChat = (ev) => {
+                        if (panel && !panel.contains(ev.target) && !btn.contains(ev.target)) {
+                            panel.remove();
+                            document.removeEventListener('click', closeChat);
+                        }
+                    };
+                    setTimeout(() => document.addEventListener('click', closeChat), 10);
+
                     const sendMessage = () => {
                         const name = nameInput.value.trim();
                         const text = textInput.value.trim();
@@ -256,6 +265,7 @@ const UI = (() => {
                         if (!text) return;
                         localStorage.setItem('sr_chat_name', name);
                         AppState.addComment(clipId, name, text);
+                        document.removeEventListener('click', closeChat);
                         rerenderFn();
                     };
                     sendBtn.addEventListener('click', sendMessage);
@@ -494,10 +504,16 @@ const UI = (() => {
         });
 
         playlists.forEach(pl => {
+            const wrap = document.createElement('div');
+            wrap.style.display = 'flex';
+            wrap.style.alignItems = 'center';
+            wrap.style.gap = '4px';
+
             const btn = document.createElement('button');
             const isActive = activePlaylistId === pl.id;
             btn.className = 'source-btn' + (isActive ? ' active' : '');
             btn.dataset.source = pl.id;
+            btn.style.flex = '1';
             btn.textContent = pl.name;
             btn.addEventListener('click', () => {
                 if (isActive) {
@@ -510,7 +526,17 @@ const UI = (() => {
                 if (body) body.classList.add('collapsed');
                 if (toggle) toggle.classList.remove('open');
             });
-            playlistsContainer.appendChild(btn);
+
+            const shareBtn = document.createElement('button');
+            shareBtn.className = 'btn btn-xs btn-share pl-share-btn';
+            shareBtn.dataset.playlistId = pl.id;
+            shareBtn.title = 'Compartir playlist';
+            shareBtn.textContent = '🔗';
+            shareBtn.style.padding = '4px 6px';
+
+            wrap.appendChild(btn);
+            wrap.appendChild(shareBtn);
+            playlistsContainer.appendChild(wrap);
         });
 
         // Render filter chips

@@ -198,6 +198,38 @@ const DemoData = (() => {
         );
     }
 
+    // ── DB sync for cloud projects ──
+    function clear() {
+        games = [];
+        clips = [];
+        playlists = [];
+        playlistItems = [];
+        clipFlags = [];
+    }
+
+    function restore(data) {
+        tagTypes = data.tagTypes || [];
+        games = data.games || [];
+        clips = data.clips || [];
+        playlists = data.playlists || [];
+        playlistItems = [];
+        if (data.playlistItems) {
+            Object.keys(data.playlistItems).forEach(plId => {
+                data.playlistItems[plId].forEach((cId, idx) => {
+                    playlistItems.push({ id: uuid(), playlist_id: plId, clip_id: cId, order: idx });
+                });
+            });
+        }
+        clipFlags = [];
+        if (data.clipFlags) {
+            Object.keys(data.clipFlags).forEach(cId => {
+                data.clipFlags[cId].forEach(f => {
+                    clipFlags.push({ id: uuid(), clip_id: cId, user_id: f.userId, flag: f.flag, created_at: new Date().toISOString() });
+                });
+            });
+        }
+    }
+
     // Tag CRUD
     function createTagType(data) {
         const maxOrder = tagTypes.reduce((m, t) => Math.max(m, t.order || 0), 0);
@@ -231,6 +263,7 @@ const DemoData = (() => {
         getClipsForGame, createClip, updateClip, deleteClip,
         getPlaylistsForGame, createPlaylist, getPlaylistItems, addClipToPlaylist,
         getClipFlags, addFlag, removeFlag,
-        createTagType, updateTagType, deleteTagType
+        createTagType, updateTagType, deleteTagType,
+        clear, restore
     };
 })();

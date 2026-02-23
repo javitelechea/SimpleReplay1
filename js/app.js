@@ -49,6 +49,16 @@
     AppState.on('clipCommentsUpdated', markUnsaved);
     AppState.on('tagTypesUpdated', markUnsaved);
 
+    AppState.on('commentAdded', async () => {
+        markUnsaved();
+        if (AppState.get('currentProjectId')) {
+            try {
+                // Auto-save silently so viewers can add comments easily
+                await AppState.saveToCloud();
+            } catch (e) { console.error('Error auto-saving comment', e); }
+        }
+    });
+
     window.addEventListener('beforeunload', (e) => {
         if (hasUnsavedChanges) {
             e.preventDefault();
@@ -522,9 +532,16 @@
             UI.toast('Primero guardá el proyecto', 'error');
             return;
         }
-        const url = FirebaseData.getShareUrl(projectId, gameId);
+
+        const isViewOnly = confirm('¿Compartir en modo "Solo Ver"?\n\nAceptar: Genera un link para Solo Ver (sin poder editar).\nCancelar: Genera un link normal (Edición).');
+
+        let url = FirebaseData.getShareUrl(projectId, gameId);
+        if (isViewOnly) {
+            url += '&mode=view';
+        }
+
         navigator.clipboard.writeText(url).then(() => {
-            UI.toast('🔗 Link copiado al portapapeles', 'success');
+            UI.toast(isViewOnly ? '🔗 Link (Solo Ver) copiado' : '🔗 Link (Edición) copiado', 'success');
         }).catch(() => {
             // Fallback: show URL in prompt
             prompt('Copiá este link:', url);
@@ -544,7 +561,7 @@
     // PLAYLIST SHARE
     // ═══════════════════════════════════════
 
-    $('#analyze-playlists').addEventListener('click', (e) => {
+    const handlePlaylistShare = (e) => {
         const btn = e.target.closest('.pl-share-btn');
         if (!btn) return;
         const playlistId = btn.dataset.playlistId;
@@ -561,23 +578,37 @@
         }).catch(() => {
             prompt('Copiá este link:', url);
         });
-    });
+    };
+
+    $('#analyze-playlists').addEventListener('click', handlePlaylistShare);
+    // También escuchamos los clicks de compartir playlist en la vista "Ver"
+    const sourcePlaylistsCont = $('#source-playlists');
+    if (sourcePlaylistsCont) {
+        sourcePlaylistsCont.addEventListener('click', handlePlaylistShare);
+    }
 
     // ═══════════════════════════════════════
     // INITIALIZATION
     // ═══════════════════════════════════════
 
     async function init() {
-        // Init state (loads demo data as default)
-        AppState.init();
-
-        // Init YouTube Player
-        await YTPlayer.init();
-
         // Check if loading a shared project from URL
         const projectIdFromUrl = FirebaseData.getProjectIdFromUrl();
         const playlistIdFromUrl = FirebaseData.getPlaylistIdFromUrl();
         const gameIdFromUrl = FirebaseData.getGameIdFromUrl();
+        const params = new URLSearchParams(window.location.search);
+        const modeFromUrl = params.get('mode');
+
+        if (projectIdFromUrl) {
+            // No cargamos los clips demo si venimos de un link
+            DemoData.clear();
+        }
+
+        // Init state (loads whatever is in DemoData)
+        AppState.init();
+
+        // Init YouTube Player
+        await YTPlayer.init();
 
         if (projectIdFromUrl) {
             UI.toast('Cargando proyecto...', '');
@@ -593,6 +624,10 @@
                 const game = AppState.getCurrentGame();
                 if (game && game.youtube_video_id) {
                     YTPlayer.loadVideo(game.youtube_video_id);
+                }
+
+                if (modeFromUrl === 'view') {
+                    AppState.setMode('view');
                 }
             } else {
                 UI.toast('No se pudo cargar el proyecto', 'error');

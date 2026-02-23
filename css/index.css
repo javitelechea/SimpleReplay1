@@ -271,10 +271,15 @@ select {
 
 /* Chat panel */
 .clip-chat-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 280px;
+  z-index: 60;
+  box-shadow: var(--shadow-lg);
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
-  margin: 4px 0;
   padding: 8px;
   max-height: 200px;
   display: flex;

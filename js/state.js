@@ -407,6 +407,10 @@ const AppState = (() => {
     state.clipFlags = data.clipFlags || {};
     state.clipComments = data.clipComments || {};
 
+    // Sync DemoData so local mutations work with cloud data
+    // This maintains the single source of truth for clips/playlists
+    DemoData.restore(data);
+
     // Select the first game if any
     if (state.games.length > 0) {
       state.currentGameId = state.games[0].id;
