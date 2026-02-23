@@ -581,6 +581,7 @@ const playlistIdFromUrl = FirebaseData.getPlaylistIdFromUrl();
 if (projectIdFromUrl) {
     UI.toast('Cargando proyecto...', '');
     const loaded = await AppState.loadFromCloud(projectIdFromUrl);
+
     if (loaded) {
         FirebaseData.addProjectLocally(projectIdFromUrl);
         UI.toast('Proyecto cargado ✅', 'success');
@@ -598,15 +599,14 @@ if (projectIdFromUrl) {
     } else {
         UI.toast('No se pudo cargar el proyecto', 'error');
     }
-}
-        } else {
-            // Auto-select first game for demo
-            const games = AppState.get('games');
-            if (games.length > 0) {
-                AppState.setCurrentGame(games[0].id);
-            }
-        }
 
+} else {
+    // Auto-select first game for demo
+    const games = AppState.get('games');
+    if (games.length > 0) {
+        AppState.setCurrentGame(games[0].id);
+    }
+}
         // Apply playlist-only mode if requested
         if (playlistIdFromUrl) {
             document.body.classList.add('playlist-only-mode');
