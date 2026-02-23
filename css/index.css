@@ -1666,8 +1666,27 @@ body.panel-collapsed .nav-arrow-right {
    PLAYLIST ONLY MODE
    ═══════════════════════════════════════════ */
 body.playlist-only-mode #app-header .header-center,
-body.playlist-only-mode #app-header .header-right {
+body.playlist-only-mode #app-header .header-right #game-selector,
+body.playlist-only-mode #app-header .header-right #btn-new-game,
+body.playlist-only-mode #app-header .header-right .header-divider,
+body.playlist-only-mode #app-header .header-right #btn-my-projects {
   display: none !important;
+}
+
+/* ═══════════════════════════════════════════
+   READ ONLY MODE (View Only Link)
+   ═══════════════════════════════════════════ */
+body.read-only-mode #btn-mode-analyze,
+body.read-only-mode #mode-slider,
+body.read-only-mode #btn-new-game,
+body.read-only-mode .header-divider,
+body.read-only-mode #btn-save-project {
+  display: none !important;
+}
+
+/* Let the save button show up IF they are also in a playlist link, per user request */
+body.read-only-mode.playlist-only-mode #btn-save-project {
+  display: inline-flex !important;
 }
 
 body.playlist-only-mode .source-selector {

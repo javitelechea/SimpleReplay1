@@ -644,6 +644,7 @@
                 }
 
                 if (modeFromUrl === 'view') {
+                    document.body.classList.add('read-only-mode');
                     AppState.setMode('view');
                 }
             } else {
