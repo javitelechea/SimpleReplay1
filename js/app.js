@@ -525,6 +525,9 @@
         }
     });
 
+    // Share Project Modal logic
+    let _pendingShareUrlBase = '';
+
     $('#btn-share-project').addEventListener('click', () => {
         const projectId = AppState.get('currentProjectId');
         const gameId = AppState.get('currentGameId');
@@ -533,19 +536,32 @@
             return;
         }
 
-        const isViewOnly = confirm('¿Compartir en modo "Solo Ver"?\n\nAceptar: Genera un link para Solo Ver (sin poder editar).\nCancelar: Genera un link normal (Edición).');
+        _pendingShareUrlBase = FirebaseData.getShareUrl(projectId, gameId);
+        UI.showModal('modal-share-options');
+    });
 
-        let url = FirebaseData.getShareUrl(projectId, gameId);
-        if (isViewOnly) {
-            url += '&mode=view';
-        }
-
+    $('#btn-share-edit').addEventListener('click', () => {
+        UI.hideModal('modal-share-options');
+        const url = _pendingShareUrlBase;
         navigator.clipboard.writeText(url).then(() => {
-            UI.toast(isViewOnly ? '🔗 Link (Solo Ver) copiado' : '🔗 Link (Edición) copiado', 'success');
+            UI.toast('🔗 Link (Edición) copiado', 'success');
         }).catch(() => {
-            // Fallback: show URL in prompt
             prompt('Copiá este link:', url);
         });
+    });
+
+    $('#btn-share-view').addEventListener('click', () => {
+        UI.hideModal('modal-share-options');
+        const url = _pendingShareUrlBase + '&mode=view';
+        navigator.clipboard.writeText(url).then(() => {
+            UI.toast('🔗 Link (Solo Ver) copiado', 'success');
+        }).catch(() => {
+            prompt('Copiá este link:', url);
+        });
+    });
+
+    $('#btn-cancel-share').addEventListener('click', () => {
+        UI.hideModal('modal-share-options');
     });
 
     // Show share button if project is already saved
@@ -572,12 +588,8 @@
             return;
         }
 
-        const url = FirebaseData.getShareUrl(projectId, null, playlistId);
-        navigator.clipboard.writeText(url).then(() => {
-            UI.toast('🔗 Link de playlist copiado', 'success');
-        }).catch(() => {
-            prompt('Copiá este link:', url);
-        });
+        _pendingShareUrlBase = FirebaseData.getShareUrl(projectId, null, playlistId);
+        UI.showModal('modal-share-options');
     };
 
     $('#analyze-playlists').addEventListener('click', handlePlaylistShare);

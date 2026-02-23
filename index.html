@@ -251,6 +251,28 @@
     </div>
   </div>
 
+  <!-- ═══════ SHARE OPTIONS MODAL ═══════ -->
+  <div id="modal-share-options" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-box modal-sm" style="text-align: center;">
+      <h3 style="margin-bottom:12px;">🔗 Compartir Link</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">
+        Elige cómo quieres compartir este proyecto.
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button id="btn-share-edit" class="btn btn-primary" style="width: 100%;">
+          ✏️ Link de Edición (Colaborar)
+        </button>
+        <button id="btn-share-view" class="btn btn-share" style="width: 100%;">
+          👁️ Link de Solo Lectura (Estadísticas/Chat)
+        </button>
+      </div>
+      <div class="modal-actions" style="margin-top: 15px; justify-content: center;">
+        <button id="btn-cancel-share" class="btn btn-sm btn-ghost">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══════ COLLAPSED PANEL BUTTON ═══════ -->
   <button id="btn-expand-panel" class="btn-expand hidden" title="Mostrar panel">‹</button>
 
