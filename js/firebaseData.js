@@ -155,14 +155,15 @@ const FirebaseData = (() => {
         }
     }
 
-    return {
-        saveProject,
-        loadProject,
-        listProjects,
-        getShareUrl,
-        getProjectIdFromUrl,
-        getPlaylistIdFromUrl,
-        addProjectLocally,
-        removeProjectLocally
-    };
+return {
+    saveProject,
+    loadProject,
+    listProjects,
+    getShareUrl,
+    getProjectIdFromUrl,
+    getGameIdFromUrl,       // ← ESTA ES LA QUE FALTA
+    getPlaylistIdFromUrl,
+    addProjectLocally,
+    removeProjectLocally
+};
 })();
