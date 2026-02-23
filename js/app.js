@@ -134,6 +134,10 @@
         UI.renderViewSources();
     });
 
+    AppState.on('clipCommentsUpdated', () => {
+        UI.renderNotifications();
+    });
+
     // ═══════════════════════════════════════
     // DOM EVENT LISTENERS
     // ═══════════════════════════════════════
@@ -141,6 +145,28 @@
     // Mode toggle
     $('#btn-mode-analyze').addEventListener('click', () => AppState.setMode('analyze'));
     $('#btn-mode-view').addEventListener('click', () => AppState.setMode('view'));
+    $('#btn-notifications').addEventListener('click', () => {
+        // Toggle notifications panel visibility
+        const panelAnalyze = $('#panel-analyze');
+        const panelView = $('#panel-view');
+        const panelNotif = $('#panel-notifications');
+
+        // Hide others, toggle self
+        panelAnalyze.classList.add('hidden');
+        panelView.classList.add('hidden');
+
+        // Remove active state from mode buttons
+        $('#btn-mode-analyze').classList.remove('active');
+        $('#btn-mode-view').classList.remove('active');
+
+        panelNotif.classList.remove('hidden');
+        UI.renderNotifications();
+
+        // Expand panel if it was collapsed
+        if (AppState.get('panelCollapsed')) {
+            AppState.togglePanel();
+        }
+    });
 
     // Game selector
     $('#game-selector').addEventListener('change', (e) => {

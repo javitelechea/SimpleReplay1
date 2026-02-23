@@ -593,6 +593,77 @@ const UI = (() => {
         });
     }
 
+    // ═══ NOTIFICATIONS (Novedades) ═══
+    function renderNotifications() {
+        const container = $('#notifications-list');
+        if (!container) return;
+
+        // Get all comments across all clips
+        const clips = AppState.get('clips');
+        let allComments = [];
+        clips.forEach(clip => {
+            const comments = AppState.getComments(clip.id);
+            comments.forEach(c => {
+                allComments.push({
+                    clipId: clip.id,
+                    start_sec: clip.start_sec,
+                    end_sec: clip.end_sec,
+                    tagTypeId: clip.tag_type_id,
+                    ...c
+                });
+            });
+        });
+
+        // Sort by timestamp descending
+        allComments.sort((a, b) => b.timestamp - a.timestamp);
+
+        // Take latest 20
+        const recentComments = allComments.slice(0, 20);
+
+        $('#notif-count').textContent = recentComments.length;
+
+        if (recentComments.length === 0) {
+            container.innerHTML = '<p style="color:var(--text-muted);font-size:0.8rem;padding:8px;text-align:center;">No hay comentarios recientes.</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        recentComments.forEach(c => {
+            const tag = AppState.getTagType(c.tagTypeId);
+            const timeStr = c.timestamp ? new Date(c.timestamp).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '';
+
+            const el = document.createElement('div');
+            el.className = 'clip-item';
+            el.style.flexDirection = 'column';
+            el.style.alignItems = 'flex-start';
+            el.innerHTML = `
+                <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:4px;">
+                    <span class="clip-tag-badge" style="font-size:0.7rem; padding:2px 4px;">${tag ? tag.label : 'Clip'}</span>
+                    <span style="font-size:0.65rem; color:var(--text-muted);">${timeStr}</span>
+                </div>
+                <div style="font-size:0.8rem;">
+                    <span class="chat-name">${c.name}:</span> ${highlightMentions(c.text)}
+                </div>
+            `;
+
+            el.addEventListener('click', () => {
+                // Remove playlist only mode if active (so they can see the clip if it wasn't in the playlist)
+                document.body.classList.remove('playlist-only-mode');
+                AppState.clearPlaylistFilter();
+                AppState.setMode('view');
+                AppState.setCurrentClip(c.clipId);
+                YTPlayer.playClip(c.start_sec, c.end_sec);
+
+                // Close panel on mobile if needed
+                if (window.innerWidth <= 768) {
+                    AppState.togglePanel();
+                }
+            });
+
+            container.appendChild(el);
+        });
+    }
+
     // ═══ FLAG FILTER BAR ═══
     function updateFlagFilterBar() {
         const activeFilters = AppState.get('filterFlags');
@@ -650,32 +721,36 @@ const UI = (() => {
         document.body.classList.toggle('panel-collapsed', collapsed);
     }
 
-    // ═══ MODE SWITCH ═══
+    // ═══ MODE & PANELS ═══
     function updateMode() {
         const mode = AppState.get('mode');
+        const btnAnalyze = $('#btn-mode-analyze');
+        const btnView = $('#btn-mode-view');
         const panelAnalyze = $('#panel-analyze');
         const panelView = $('#panel-view');
-        const navArrows = $('#nav-arrows');
-        const tagBar = $('#tag-bar');
+        const panelNotif = $('#panel-notifications');
         const slider = $('#mode-slider');
+        const tagBar = $('#tag-bar');
 
-        // Toggle panels
-        panelAnalyze.classList.toggle('hidden', mode !== 'analyze');
-        panelView.classList.toggle('hidden', mode !== 'view');
+        btnAnalyze.classList.toggle('active', mode === 'analyze');
+        btnView.classList.toggle('active', mode === 'view');
 
-        // Toggle nav arrows (only in view mode)
-        navArrows.classList.toggle('hidden', mode !== 'view');
-
-        // Toggle tag bar (only in analyze mode)
-        tagBar.classList.toggle('hidden', mode !== 'analyze');
-
-        // Toggle buttons active
-        $('#btn-mode-analyze').classList.toggle('active', mode === 'analyze');
-        $('#btn-mode-view').classList.toggle('active', mode === 'view');
+        if (mode === 'analyze') {
+            panelAnalyze.classList.remove('hidden');
+            panelView.classList.add('hidden');
+            if (panelNotif) panelNotif.classList.add('hidden');
+            tagBar.classList.remove('hidden');
+            updateClipEditControls();
+        } else { // mode === 'view'
+            panelAnalyze.classList.add('hidden');
+            panelView.classList.remove('hidden');
+            if (panelNotif) panelNotif.classList.add('hidden');
+            tagBar.classList.add('hidden');
+            $('#clip-edit-controls').style.display = 'none';
+        }
 
         // Slider animation
-        slider.classList.toggle('right', mode === 'view');
-
+        if (slider) slider.classList.toggle('right', mode === 'view');
         // Exit focus when switching to analyze
         if (mode === 'analyze' && AppState.get('focusView')) {
             AppState.toggleFocusView();
@@ -837,7 +912,7 @@ const UI = (() => {
         updateNoGameOverlay,
         showAddToPlaylistModal, renderPlaylistModalList, showModal, hideModal,
         toggleTagEditor, saveTagFromEditor, deleteTagFromEditor, closeTagInlineEditor,
-        getSelectedClipIds, clearClipSelection,
+        getSelectedClipIds, clearClipSelection, renderNotifications,
         refreshAll
     };
 })();

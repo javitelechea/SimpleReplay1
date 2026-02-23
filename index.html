@@ -51,6 +51,7 @@
       <button id="btn-save-project" class="btn btn-save btn-sm" title="Guardar proyecto">💾 Guardar</button>
       <button id="btn-share-project" class="btn btn-share btn-sm" title="Compartir link" style="display:none;">🔗
         Compartir</button>
+      <button id="btn-notifications" class="btn btn-sm" title="Novedades (Comentarios recientes)">🛎️ Novedades</button>
       <button id="btn-my-projects" class="btn btn-projects btn-sm" title="Mis proyectos">📂 Proyectos</button>
     </div>
   </header>
@@ -146,6 +147,17 @@
             <button id="btn-create-playlist" class="btn btn-sm btn-primary">+</button>
           </div>
           <div id="analyze-playlists" class="playlist-list"></div>
+        </div>
+      </div>
+
+      <!-- ═══ NOTIFICATIONS PANEL ═══ -->
+      <div id="panel-notifications" class="panel-content hidden" style="padding:var(--sp-md);">
+        <h3 class="section-title">
+          Novedades (Últimos comentarios)
+          <span id="notif-count" class="badge">0</span>
+        </h3>
+        <div id="notifications-list" class="clip-list">
+          <p style="color:var(--text-muted);font-size:0.8rem;padding:8px;">No hay comentarios recientes.</p>
         </div>
       </div>
 
