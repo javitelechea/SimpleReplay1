@@ -574,29 +574,31 @@
         // Init YouTube Player
         await YTPlayer.init();
 
-        // Check if loading a shared project from URL
-        const projectIdFromUrl = FirebaseData.getProjectIdFromUrl();
-        const playlistIdFromUrl = FirebaseData.getPlaylistIdFromUrl();
-        const projectIdFromUrl = FirebaseData.getProjectIdFromUrl();
+// Check if loading a shared project from URL
+const projectIdFromUrl = FirebaseData.getProjectIdFromUrl();
+const playlistIdFromUrl = FirebaseData.getPlaylistIdFromUrl();
 
-        if (projectIdFromUrl) {
-            UI.toast('Cargando proyecto...', '');
-            const loaded = await AppState.loadFromCloud(projectIdFromUrl);
-            if (loaded) {
-                FirebaseData.addProjectLocally(projectIdFromUrl);
-                UI.toast('Proyecto cargado ✅', 'success');
+if (projectIdFromUrl) {
+    UI.toast('Cargando proyecto...', '');
+    const loaded = await AppState.loadFromCloud(projectIdFromUrl);
+    if (loaded) {
+        FirebaseData.addProjectLocally(projectIdFromUrl);
+        UI.toast('Proyecto cargado ✅', 'success');
 
-                if (gameIdFromUrl) {
-                    AppState.setCurrentGame(gameIdFromUrl);
-                }
+        // Si existe gameIdFromUrl, asegurate de haberlo declarado arriba
+        // (si no, comentá estas 3 líneas)
+        if (typeof gameIdFromUrl !== 'undefined' && gameIdFromUrl) {
+            AppState.setCurrentGame(gameIdFromUrl);
+        }
 
-                const game = AppState.getCurrentGame();
-                if (game && game.youtube_video_id) {
-                    YTPlayer.loadVideo(game.youtube_video_id);
-                }
-            } else {
-                UI.toast('No se pudo cargar el proyecto', 'error');
-            }
+        const game = AppState.getCurrentGame();
+        if (game && game.youtube_video_id) {
+            YTPlayer.loadVideo(game.youtube_video_id);
+        }
+    } else {
+        UI.toast('No se pudo cargar el proyecto', 'error');
+    }
+}
         } else {
             // Auto-select first game for demo
             const games = AppState.get('games');
