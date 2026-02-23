@@ -48,9 +48,9 @@
       </select>
       <button id="btn-new-game" class="btn btn-primary btn-sm">+ Partido</button>
       <div class="header-divider"></div>
-      <button id="btn-save-project" class="btn btn-save btn-sm" title="Guardar proyecto">💾 Guardar</button>
-      <button id="btn-share-project" class="btn btn-share btn-sm" title="Compartir link" style="display:none;">🔗
-        Compartir</button>
+      <button id="btn-save-project" class="btn btn-save btn-sm" title="Guardar proyecto">💾</button>
+      <button id="btn-share-project" class="btn btn-share btn-sm" title="Compartir link"
+        style="display:none;">🔗</button>
       <button id="btn-my-projects" class="btn btn-projects btn-sm" title="Mis proyectos">📂 Proyectos</button>
     </div>
   </header>
@@ -155,7 +155,7 @@
         <div class="panel-section panel-section-fixed" id="view-source-selector">
           <div class="source-selector">
             <button class="source-btn active" data-source="all" id="src-all">Partido completo</button>
-            <div class="source-group">
+            <div class="source-group" id="source-group-tags">
               <button class="source-group-toggle" data-toggle="source-tags-list">
                 <span class="toggle-arrow">▸</span> Tags
               </button>
@@ -163,7 +163,7 @@
                 <div id="source-tags"></div>
               </div>
             </div>
-            <div class="source-group">
+            <div class="source-group" id="source-group-playlists">
               <button class="source-group-toggle" data-toggle="source-playlists-list">
                 <span class="toggle-arrow">▸</span> Playlists
               </button>
@@ -271,15 +271,27 @@
     <div class="modal-box modal-sm" style="text-align: center;">
       <h3 style="margin-bottom:12px;">🔗 Compartir Link</h3>
       <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">
-        Elige cómo quieres compartir este proyecto.
+        Elige qué quieres enviar a tus compañeros:
       </p>
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <button id="btn-share-edit" class="btn btn-primary" style="width: 100%;">
-          ✏️ Link de Edición (Colaborar)
+        <button id="btn-share-edit" class="btn"
+          style="width: 100%; border:1px solid var(--border); background:var(--bg-card); justify-content:flex-start;">
+          ✏️ Proyecto colaborativo
         </button>
-        <button id="btn-share-view" class="btn btn-share" style="width: 100%;">
-          👁️ Link de Solo Lectura (Estadísticas/Chat)
+        <button id="btn-share-view" class="btn"
+          style="width: 100%; border:1px solid var(--border); background:var(--bg-card); justify-content:flex-start;">
+          👁️ Partido sólo lectura
         </button>
+
+        <div
+          style="margin-top: 6px; padding-top: 12px; border-top: 1px solid var(--border); display:flex; flex-direction:column; gap:8px;">
+          <select id="share-playlist-select" class="input-sm" style="width: 100%; text-align:left;">
+            <option value="">(No hay playlists disponibles)</option>
+          </select>
+          <button id="btn-share-playlist-modal" class="btn btn-share" style="width: 100%;">
+            📋 Compartir Playlist
+          </button>
+        </div>
       </div>
       <div class="modal-actions" style="margin-top: 15px; justify-content: center;">
         <button id="btn-cancel-share" class="btn btn-sm btn-ghost">Cancelar</button>

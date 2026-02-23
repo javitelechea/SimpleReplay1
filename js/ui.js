@@ -457,7 +457,7 @@ const UI = (() => {
             el.className = 'playlist-item';
             el.innerHTML = `
         <span class="pl-icon">📁</span>
-        <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${pl.name}</span>
+        <span class="pl-name-click" data-playlist-id="${pl.id}" style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:pointer;" title="Ver Playlist">${pl.name}</span>
         <span class="pl-count">${items.length} clips</span>
         <button class="btn btn-xs btn-share pl-share-btn" data-playlist-id="${pl.id}" title="Compartir playlist">🔗</button>
       `;

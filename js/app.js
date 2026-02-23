@@ -426,6 +426,18 @@
         // Don't handle shortcuts when typing in inputs
         if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
 
+        // Spacebar: exclusively toggle play/pause to avoid accidental button clicks
+        if (e.key === ' ') {
+            e.preventDefault();
+            const playerState = YTPlayer.getPlayerState();
+            if (playerState === 1) { // playing
+                YTPlayer.pauseVideo();
+            } else {
+                YTPlayer.playVideo();
+            }
+            return;
+        }
+
         const mode = AppState.get('mode');
 
         // Arrow keys: seek video (Analyze mode)
@@ -526,7 +538,7 @@
         }
 
         btn.disabled = true;
-        btn.textContent = '⏳ Guardando...';
+        btn.textContent = '⏳';
         try {
             const projectId = await AppState.saveToCloud();
             FirebaseData.addProjectLocally(projectId);
@@ -538,7 +550,7 @@
             UI.toast('Error al guardar: ' + err.message, 'error');
         } finally {
             btn.disabled = false;
-            btn.textContent = '💾 Guardar';
+            btn.textContent = '💾';
         }
     });
 
@@ -554,6 +566,29 @@
         }
 
         _pendingShareUrlBase = FirebaseData.getShareUrl(projectId, gameId);
+
+        // Populate playlists dropdown
+        const playlists = AppState.get('playlists');
+        const sel = $('#share-playlist-select');
+        const btnSharePl = $('#btn-share-playlist-modal');
+        if (sel && btnSharePl) {
+            sel.innerHTML = '';
+            if (playlists.length === 0) {
+                sel.innerHTML = '<option value="">(No hay playlists)</option>';
+                sel.disabled = true;
+                btnSharePl.disabled = true;
+            } else {
+                playlists.forEach(pl => {
+                    const opt = document.createElement('option');
+                    opt.value = pl.id;
+                    opt.textContent = pl.name;
+                    sel.appendChild(opt);
+                });
+                sel.disabled = false;
+                btnSharePl.disabled = false;
+            }
+        }
+
         UI.showModal('modal-share-options');
     });
 
@@ -577,6 +612,21 @@
         });
     });
 
+    const btnSharePlaylistModal = $('#btn-share-playlist-modal');
+    if (btnSharePlaylistModal) {
+        btnSharePlaylistModal.addEventListener('click', () => {
+            const plId = $('#share-playlist-select').value;
+            if (!plId) return;
+            UI.hideModal('modal-share-options');
+            const url = _pendingShareUrlBase + '&playlist=' + plId + '&mode=view';
+            navigator.clipboard.writeText(url).then(() => {
+                UI.toast('🔗 Link de Playlist copiado', 'success');
+            }).catch(() => {
+                prompt('Copiá este link:', url);
+            });
+        });
+    }
+
     $('#btn-cancel-share').addEventListener('click', () => {
         UI.hideModal('modal-share-options');
     });
@@ -594,23 +644,50 @@
     // PLAYLIST SHARE
     // ═══════════════════════════════════════
 
-    const handlePlaylistShare = (e) => {
-        const btn = e.target.closest('.pl-share-btn');
-        if (!btn) return;
-        const playlistId = btn.dataset.playlistId;
-        const projectId = AppState.get('currentProjectId');
+    const handlePlaylistShare = async (e) => {
+        const shareBtn = e.target.closest('.pl-share-btn');
+        if (shareBtn) {
+            const playlistId = shareBtn.dataset.playlistId;
+            let projectId = AppState.get('currentProjectId');
 
-        if (!projectId) {
-            UI.toast('Primero guardá el proyecto para compartir', 'error');
+            // Auto-guardar primero si estamos en modo editar y tocamos el link
+            if (AppState.get('mode') === 'analyze') {
+                const saveBtn = $('#btn-save-project');
+                if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '⏳'; }
+                UI.toast('Guardando cambios antes de compartir...', 'info');
+                try {
+                    projectId = await AppState.saveToCloud();
+                    FirebaseData.addProjectLocally(projectId);
+                    $('#btn-share-project').style.display = 'inline-flex';
+                } catch (err) {
+                    UI.toast('Error al guardar: ' + err.message, 'error');
+                    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾'; }
+                    return;
+                }
+                if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾'; }
+            }
+
+            if (!projectId) {
+                UI.toast('Primero guardá el proyecto para compartir', 'error');
+                return;
+            }
+
+            const url = FirebaseData.getShareUrl(projectId, null, playlistId) + '&mode=view';
+            navigator.clipboard.writeText(url).then(() => {
+                UI.toast('🔗 Link de Playlist copiado', 'success');
+            }).catch(() => {
+                prompt('Copiá este link:', url);
+            });
             return;
         }
 
-        const url = FirebaseData.getShareUrl(projectId, null, playlistId) + '&mode=view';
-        navigator.clipboard.writeText(url).then(() => {
-            UI.toast('🔗 Link de Playlist copiado', 'success');
-        }).catch(() => {
-            prompt('Copiá este link:', url);
-        });
+        // Navegar automáticamente a la vista de la playlist si hacen clic en el nombre
+        const nameBtn = e.target.closest('.pl-name-click');
+        if (nameBtn) {
+            const playlistId = nameBtn.dataset.playlistId;
+            AppState.setMode('view');
+            AppState.setPlaylistFilter(playlistId);
+        }
     };
 
     $('#analyze-playlists').addEventListener('click', handlePlaylistShare);
@@ -674,6 +751,14 @@
                 if (modeFromUrl === 'view') {
                     document.body.classList.add('read-only-mode');
                     AppState.setMode('view');
+                    if (!playlistIdFromUrl) {
+                        setTimeout(() => {
+                            const plList = document.getElementById('source-playlists-list');
+                            const plToggle = document.querySelector('[data-toggle="source-playlists-list"]');
+                            if (plList) plList.classList.remove('collapsed');
+                            if (plToggle) plToggle.classList.add('open');
+                        }, 50);
+                    }
                 }
             } else {
                 UI.toast('No se pudo cargar el proyecto', 'error');

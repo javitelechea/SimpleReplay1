@@ -1684,6 +1684,10 @@ body.read-only-mode #btn-save-project {
   display: none !important;
 }
 
+body.read-only-mode #source-group-tags {
+  display: none !important;
+}
+
 /* Let the save button show up IF they are also in a playlist link, per user request */
 body.read-only-mode.playlist-only-mode #btn-save-project {
   display: inline-flex !important;
