@@ -51,7 +51,6 @@
       <button id="btn-save-project" class="btn btn-save btn-sm" title="Guardar proyecto">💾 Guardar</button>
       <button id="btn-share-project" class="btn btn-share btn-sm" title="Compartir link" style="display:none;">🔗
         Compartir</button>
-      <button id="btn-notifications" class="btn btn-sm" title="Novedades (Comentarios recientes)">🛎️ Novedades</button>
       <button id="btn-my-projects" class="btn btn-projects btn-sm" title="Mis proyectos">📂 Proyectos</button>
     </div>
   </header>
@@ -150,21 +149,10 @@
         </div>
       </div>
 
-      <!-- ═══ NOTIFICATIONS PANEL ═══ -->
-      <div id="panel-notifications" class="panel-content hidden" style="padding:var(--sp-md);">
-        <h3 class="section-title">
-          Novedades (Últimos comentarios)
-          <span id="notif-count" class="badge">0</span>
-        </h3>
-        <div id="notifications-list" class="clip-list">
-          <p style="color:var(--text-muted);font-size:0.8rem;padding:8px;">No hay comentarios recientes.</p>
-        </div>
-      </div>
-
       <!-- ═══ VIEW MODE PANEL ═══ -->
       <div id="panel-view" class="panel-content hidden">
         <!-- Source selector: compact, collapsible -->
-        <div class="panel-section panel-section-fixed">
+        <div class="panel-section panel-section-fixed" id="view-source-selector">
           <div class="source-selector">
             <button class="source-btn active" data-source="all" id="src-all">Partido completo</button>
             <div class="source-group">
@@ -188,6 +176,20 @@
           <div id="active-filter-chip" class="filter-chips-container" style="display:none;"></div>
           <button id="btn-reset-all-filters" class="btn btn-xs btn-ghost btn-reset-filters" style="display:none;"
             title="Limpiar todos los filtros">❌ Limpiar filtros</button>
+        </div>
+
+        <!-- ═══ NOTIFICATIONS BLOCK ═══ -->
+        <div class="panel-section panel-section-fixed" id="view-novedades"
+          style="display:none; border-bottom: 1px solid var(--border);">
+          <h3 class="section-title" style="margin-bottom:8px;">
+            🛎️ Novedades
+            <button id="btn-refresh-novedades" class="btn btn-xs btn-ghost" title="Actualizar chat">⟳
+              Sincronizar</button>
+          </h3>
+          <div id="notifications-list" class="clip-list"
+            style="max-height: 180px; overflow-y:auto; padding-bottom: 8px;">
+            <p style="color:var(--text-muted);font-size:0.8rem;text-align:center;">No hay comentarios recientes.</p>
+          </div>
         </div>
         <!-- Flags -->
         <div class="panel-section panel-section-fixed">

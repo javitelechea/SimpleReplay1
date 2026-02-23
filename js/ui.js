@@ -595,8 +595,17 @@ const UI = (() => {
 
     // ═══ NOTIFICATIONS (Novedades) ═══
     function renderNotifications() {
-        const container = $('#notifications-list');
-        if (!container) return;
+        const containerWrapper = $('#view-novedades');
+        const containerList = $('#notifications-list');
+        const notifCount = $('#notif-count');
+        if (!containerWrapper || !containerList) return;
+
+        // Only show novedades if a project exists (not demo mode)
+        const pid = AppState.get('currentProjectId');
+        if (!pid) {
+            containerWrapper.style.display = 'none';
+            return;
+        }
 
         // Get all comments across all clips
         const clips = AppState.get('clips');
@@ -620,14 +629,18 @@ const UI = (() => {
         // Take latest 20
         const recentComments = allComments.slice(0, 20);
 
-        $('#notif-count').textContent = recentComments.length;
+        if (notifCount) notifCount.textContent = recentComments.length;
 
+        // Only show the block if there are actual comments
         if (recentComments.length === 0) {
-            container.innerHTML = '<p style="color:var(--text-muted);font-size:0.8rem;padding:8px;text-align:center;">No hay comentarios recientes.</p>';
+            containerWrapper.style.display = 'none';
+            containerList.innerHTML = '<p style="color:var(--text-muted);font-size:0.8rem;padding:8px;text-align:center;">No hay comentarios recientes.</p>';
             return;
+        } else {
+            containerWrapper.style.display = 'block';
         }
 
-        container.innerHTML = '';
+        containerList.innerHTML = '';
         recentComments.forEach(c => {
             const tag = AppState.getTagType(c.tagTypeId);
             const timeStr = c.timestamp ? new Date(c.timestamp).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '';
@@ -660,7 +673,7 @@ const UI = (() => {
                 }
             });
 
-            container.appendChild(el);
+            containerList.appendChild(el);
         });
     }
 
@@ -728,7 +741,6 @@ const UI = (() => {
         const btnView = $('#btn-mode-view');
         const panelAnalyze = $('#panel-analyze');
         const panelView = $('#panel-view');
-        const panelNotif = $('#panel-notifications');
         const slider = $('#mode-slider');
         const tagBar = $('#tag-bar');
 
@@ -738,13 +750,11 @@ const UI = (() => {
         if (mode === 'analyze') {
             panelAnalyze.classList.remove('hidden');
             panelView.classList.add('hidden');
-            if (panelNotif) panelNotif.classList.add('hidden');
             tagBar.classList.remove('hidden');
             updateClipEditControls();
         } else { // mode === 'view'
             panelAnalyze.classList.add('hidden');
             panelView.classList.remove('hidden');
-            if (panelNotif) panelNotif.classList.add('hidden');
             tagBar.classList.add('hidden');
             $('#clip-edit-controls').style.display = 'none';
         }

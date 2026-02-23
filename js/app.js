@@ -145,28 +145,23 @@
     // Mode toggle
     $('#btn-mode-analyze').addEventListener('click', () => AppState.setMode('analyze'));
     $('#btn-mode-view').addEventListener('click', () => AppState.setMode('view'));
-    $('#btn-notifications').addEventListener('click', () => {
-        // Toggle notifications panel visibility
-        const panelAnalyze = $('#panel-analyze');
-        const panelView = $('#panel-view');
-        const panelNotif = $('#panel-notifications');
 
-        // Hide others, toggle self
-        panelAnalyze.classList.add('hidden');
-        panelView.classList.add('hidden');
-
-        // Remove active state from mode buttons
-        $('#btn-mode-analyze').classList.remove('active');
-        $('#btn-mode-view').classList.remove('active');
-
-        panelNotif.classList.remove('hidden');
-        UI.renderNotifications();
-
-        // Expand panel if it was collapsed
-        if (AppState.get('panelCollapsed')) {
-            AppState.togglePanel();
-        }
-    });
+    // Sync Novedades (fetch latest comments)
+    const btnRefreshNovedades = $('#btn-refresh-novedades');
+    if (btnRefreshNovedades) {
+        btnRefreshNovedades.addEventListener('click', async () => {
+            const pid = AppState.get('currentProjectId');
+            if (!pid) return;
+            UI.toast('Sincronizando...', 'info');
+            // Re-load the project from cloud to get fresh comments
+            const success = await AppState.loadFromCloud(pid);
+            if (success) {
+                UI.toast('Novedades actualizadas ✅', 'success');
+            } else {
+                UI.toast('Error al sincronizar', 'error');
+            }
+        });
+    }
 
     // Game selector
     $('#game-selector').addEventListener('change', (e) => {
